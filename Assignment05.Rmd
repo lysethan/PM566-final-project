@@ -1,0 +1,108 @@
+---
+title: "Assignment05"
+output: 
+    html_document:
+        toc: TRUE
+        toc_float: TRUE
+---
+
+```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
+library(data.table)
+library(tidyverse)
+library(dplyr)
+library(plotly)
+library(DT)
+library(knitr)
+library(reshape2)
+opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  eval=TRUE,
+  echo = TRUE,
+  cache = FALSE,
+  fig.width = 7, 
+  fig.align = 'center',
+  fig.asp = 0.618,
+  out.width = "700px")
+```
+
+```{r load-data, echo=FALSE}
+source("process_COVID_data.R")
+```
+
+
+## Interactive plots {.tabset}
+
+### Plot 1
+
+```{r echo=FALSE}
+df = data.table::fread("https://api.covidtracking.com/v1/us/daily.csv")
+df$date = as.Date(as.character(df$date),"%Y%m%d")
+p <- df %>%
+   plot_ly(x=~date, y=~deathIncrease, type="scatter", mode="lines",
+          hoverinfo="text",
+          text=~paste(paste("Date: ", date),
+                      paste("New Deaths: ", deathIncrease),
+                      sep="<br>"))%>%
+    layout(title="COVID-19 Tendency of the United States",
+           xaxis=list(title="date"),
+           yaxis=list(title="New Deaths, New positives, New tests"))
+p <- p %>%
+     add_trace(x=df[["date"]], y=df[["positiveIncrease"]], type="scatter", mode="lines",
+              hoverinfo="text",
+              text=~paste(paste("Date: ", date),
+                      paste("New Positives: ", df[["positiveIncrease"]]),
+                      sep="<br>"))
+p <- p %>%
+     add_trace(x=df[["date"]], y=df[["totalTestResultsIncrease"]], type="scatter", mode="lines",
+              hoverinfo="text",
+              text=~paste(paste("Date: ", date),
+                      paste("New Tests: ", df[["totalTestResultsIncrease"]]),
+                      sep="<br>"))
+p
+```
+
+### Plot 2
+
+```{r echo=FALSE}
+df2 = data.table::fread("https://api.covidtracking.com/v1/states/current.csv")
+p2 <- df2 %>%
+    select(state,totalTestResults,positive,recovered,death) %>%
+    plot_ly(x=~state,y=~positive, type="bar", name="positive") %>%
+    add_trace(y=~recovered, name="recovered") %>%
+    add_trace(y=~death, name="death") %>%
+    layout(title="COVID infection status(20201111) across different states", yaxis = list(title = 'Count'), barmode = 'dodge')
+p2
+```
+
+### Plot 3
+
+```{r echo=FALSE}
+df_popu = data.table::fread("https://raw.githubusercontent.com/COVID19Tracking/associated-data/master/us_census_data/us_census_2018_population_estimates_states.csv")
+df3 <- df2 %>%
+    select(state, state, positive) %>%
+    left_join(df_popu, by="state")
+df3$rate = df3$positive/df3$population
+df3 <- df3 %>% select(state,rate, state_name)
+colnames(df3) <- c("state","rate","state.name")
+df3$hover <- with(df3, paste(state.name, '<br>', "Inection rate:", rate))
+set_map_details <- list(
+  scope = 'usa',
+  projection = list(type = 'albers usa'),
+  showlakes = TRUE,
+  lakecolor = toRGB('white')
+)
+p3 <- plot_geo(df3, locationmode = 'USA-states') %>% 
+  add_trace(
+    z = ~rate, text = ~hover, locations = ~state,
+    color = ~rate, colors = 'Reds'
+  )
+p3 <- p3 %>% colorbar(title = "Population infection rate across different states")
+p3 <- p3 %>% layout(
+    title = paste('population infection rate(20201111) ','<br>(Hover for value)'),
+    geo = set_map_details
+  )
+p3
+```
+
+{-}
