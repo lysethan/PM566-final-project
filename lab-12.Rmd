@@ -7,19 +7,7 @@ output:
         toc_float: TRUE
 ---
 
-# Introduction
-
-COVID-19 is a global pandemic that affects our health and life. By exploring the COVID-19 condition, we can make take possible actions to better contain its spread and make plans for the future. In this project, we mainly study the COVID-19 condition in the United States. I hope that this project can give the readers useful information about the COVID-19 conditions in the United States. 
-
-How is the COVID-19 condition in the United States now? The question can be answered from the following perspectives:
-
-- Q1: Condition Overview. Latest condition about the **new confirmed cases**, **accumulated death**, **accu**
-- Q2: Tendency. The tendency of COVID-19 infection in terms of 
-- Q3: Death Rate. The death cases in terms of each state.
-- Q4: Key Information. What is the key latest information we should pay attention to.
-
-
-
+This is my PM566 Final Project website.
 
 
 
