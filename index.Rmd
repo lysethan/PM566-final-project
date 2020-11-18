@@ -122,7 +122,7 @@ We can see that we are doing more and more COVID-19 testing. And the line graph 
 From the curve of the New death cases, we can see the new death cases is becoming flat and not increasing like new confirmed cases, plausibly indicating that COVID-19 virus is less harmful than before or we are more experienced to cure the disease. However, this may subject to many factors' influences.
 
 
-## Q3: Community Infection Status
+### Q3: Community Infection Status
 
 Different age groups may have different susceptibility towards the virus due to their different immune levels. In addition, the virus infection may also differs with respect to races and ethnicities. We gathered the data from https://covid.cdc.gov to discover the infection status of different age groups or races and ethnicities.
 
@@ -176,7 +176,7 @@ ggplotly(p)
 This graph of infection of different age groups tells us the younger people have a higher infection rate than other populations. Nevertheless, the older people tends to be impacted seriously by the virus, thus leading to the higher death rate among the population. We add a smooth line to the differences using `loess` method.
 
 
-## Q4: Population Infection Rate
+### Q4: Population Infection Rate
 
 
 ```{r, echo=FALSE}
