@@ -1,93 +1,174 @@
 ---
-title: "PM566 Final Project"
-author: "lysethan"
-output: 
-    html_document:
-        toc: TRUE
-        toc_float: TRUE
+title: "COVID-19 condition study in the United States"
+author: liyongsh@usc.edu
+output: html_document
 ---
 
-# Introduction
 
-COVID-19 is a global pandemic that affects our health and life. By exploring the COVID-19 condition, we can make take possible actions to better contain its spread and make plans for the future. In this project, we mainly study the COVID-19 condition in the United States. I hope that this project can give the readers useful information about the COVID-19 conditions in the United States. 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stringr)
+library(tidyverse)
+library(data.table)
+library(knitr)
+options(scipen = 200)
+```
 
-How is the COVID-19 condition in the United States now? The question can be answered from the following perspectives:
 
-- Q1: Condition Overview. Latest condition about the **new confirmed cases**, **accumulated death**, **accu**
-- Q2: Tendency. The tendency of COVID-19 infection in terms of 
+
+## Introduction 
+
+COVID-19 is a global pandemic that affects our health and life. By exploring the COVID-19 condition, we can make take possible actions to better contain its spread and make plans for the future.   In this project, we mainly study the COVID-19 condition in the United States. 
+
+How is the COVID-19 condition in the United States now? The question can be answered from the following perspectives.
+
+- Q1: Condition Overview. Latest status about the accumulated confirmed case numbers,new confirmed cases,accumulated death,new deaths
+- Q2: Tendency. The tendency of COVID-19 infection.
 - Q3: Death Rate. The death cases in terms of each state.
 - Q4: Key Information. What is the key latest information we should pay attention to.
 
 
 
+## Methods
 
+The COVID Tracking Project is a volunteer organization to publish the data required to understand the COVID-19 outbreak in the United States. The website provides APIs for accessing the data: https://covidtracking.com/data/api.
 
+The data used for this project is as follows:
 
-```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
-library(data.table)
-library(tidyverse)
-library(dplyr)
-library(plotly)
-library(DT)
-library(knitr)
-opts_chunk$set(
-  warning = FALSE,
-  message = FALSE,
-  eval=TRUE,
-  echo = TRUE,
-  cache = FALSE,
-  fig.width = 7, 
-  fig.align = 'center',
-  fig.asp = 0.618,
-  out.width = "700px")
-```
+- https://api.covidtracking.com/v1/us/daily.csv: Historical Data of COVID-19 in the United states.
+- https://api.covidtracking.com/v1/states/info.csv: Basic information about states, including notes about our methodology and the websites we use to check for data.
+- https://api.covidtracking.com/v1/states/daily.csv: all COVID data available for every state since tracking started.
 
-```{r load-data, echo=FALSE}
-source("process_COVID_data.R")
-```
+This project uses the following packages to achieve the analysis:
 
+- data.table: read in web link data and converting to data.tables.
+- tidytext: extract ngrams from a text sequence.
+- ggplot2: produce the graphs.
+- knitr: knitr the document and produce nice-look markdown tables
+- tidyverse: data cleaning, filtering and so on.
+- head(), str() and so on are used for basic data explorations. 
 
+The data link can be directly read into a data.table using `data.table::fread`
 
-```{r echo=FALSE}
-p1_scatter <- cv_states_today %>% 
-  plot_ly(x = ~pop_density, y = ~deathsper100k,
-          type = 'scatter', mode = 'markers', color = ~state,
-          size = ~population, sizes = c(5, 70), marker = list(sizemode='diameter', opacity=0.5),
-          hoverinfo = 'text',
-          text = ~paste( paste(state, ":", sep=""), paste(" Cases per 100k: ", per100k, sep="") , paste(" Deaths per 100k: ",
-                        deathsper100k, sep=""), sep = "<br>")) %>%
-  layout(title = "Population-normalized COVID-19 deaths vs. population density",
-                  yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"),
-         hovermode = "compare")
-
-# filter out "District of Columbia"
-cv_states_today_scatter <- cv_states_today %>% filter(state!="District of Columbia")
-
-p2_scatter <- cv_states_today_scatter %>% 
-  plot_ly(x = ~pop_density, y = ~deathsper100k,
-          type = 'scatter', mode = 'markers', color = ~state,
-          size = ~population, sizes = c(5, 70), marker = list(sizemode='diameter', opacity=0.5),
-          hoverinfo = 'text',
-          text = ~paste( paste(state, ":", sep=""), paste(" Cases per 100k: ", per100k, sep="") , paste(" Deaths per 100k: ",
-                        deathsper100k, sep=""), sep = "<br>")) %>%
-  layout(title = "Population-normalized COVID-19 deaths vs. population density",
-                  yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"),
-         hovermode = "compare")
+```{r, echo=FALSE,include=FALSE}
+df = fread("https://api.covidtracking.com/v1/us/daily.csv")
 ```
 
 
-## Showcasing plots {.tabset}
 
-### Figure 1
 
-```{r echo=FALSE}
-p1_scatter
+## Preliminary Results
+### Q1: Condition Overview
+
+Here is the summary of the latest status about the accumulated confirmed case numbers,new confirmed cases,accumulated death,new deaths
+
+```{r,echo=FALSE}
+overview = df[1,c("date","positive","positiveIncrease","death","deathIncrease")]
+colnames(overview) = c("date","accumulated confirmed case numbers", "new confirmed cases", "accumulated death", "new deaths")
+kable(overview)
 ```
 
-### Figure 2
+### Q2: Tendency.
 
-```{r echo=FALSE}
-p2_scatter
+The tendency of COVID-19 can reflect how will this pandemic will proceed into the future. Is it getting better or worse?
+
+```{r, echo=FALSE}
+df$date = as.Date(as.character(df$date),"%Y%m%d")
+p <- df %>%
+   ggplot(mapping= aes(x=date, y=positive))+geom_point()+
+   scale_x_date(date_breaks = "1 month")+
+   labs(x='Date',y='Confirmed Cases',title='Tendency of Confirmed COVID-19 Cases in the United States')+
+   theme(axis.text.x = element_text(angle = 90))+
+   theme(plot.title = element_text(hjust = 0.5))+
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+   theme(panel.background = element_blank(),axis.line = element_line(colour = "black"))
+p
 ```
 
-{-}
+The line graph depicts the tendency of the COVID-19 pandemic. We can see that there are more and more people getting infected with COVID-19. The curve does not seem to be more flat as the time goes. Therefore, we have not reached the turning point in which the actual condition gets better.
+
+```{r, echo=FALSE}
+p <- df %>%
+   ggplot(mapping= aes(x=date, y=positiveIncrease))+geom_line()+geom_point()+
+   scale_x_date(date_breaks = "1 month")+
+   labs(x='Date',y='positiveIncrease',title='Increased positive cases of COVID-19 in the United States')+
+   theme(axis.text.x = element_text(angle = 90))+
+   theme(plot.title = element_text(hjust = 0.5))+
+   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+   theme(panel.background = element_blank(), axis.line = element_line(colour = "black"))
+p
+```
+
+From the curve of the Increased positive cases, we can see the new confirmed cases recently are significantly less than before, plausibly indicating that COVID-19 virus is leaving. However, this may subject to many factors' influences like testing capacities.
+
+### Q3: Death Rate
+
+
+```{r,echo=FALSE}
+df = fread("https://api.covidtracking.com/v1/states/daily.csv")
+```
+
+There are some NAs in this dataset for variable `death`. we can remove it using `dlpy::filter` function. The basic summary of death variable is as follows:
+
+```{r, echo=FALSE}
+basic = t(as.array(summary(df$death)))
+kable(basic)
+```
+
+
+
+
+```{r, echo=FALSE}
+p <- df %>%
+  filter(!(death %in% NA)) %>%
+  group_by(state) %>%
+  summarise(total_death=sum(death)) %>%
+  mutate(state = fct_reorder(state, total_death)) %>%
+  ggplot(aes(x=state,y=total_death)) + geom_bar(stat="identity")+
+  labs(x='State',y='Reported Deaths',title='COVID-19 Death cases with respect to each state')+
+  theme(axis.text.x = element_text(angle = 90))+
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank(), axis.line = element_line(colour = "black"))
+p
+```
+
+Death number is a good indicator to show the COVID-19 status in a state. We can see from the bar graph that New York State is the most severe state with regard to death cases. Still then, there are some states showing a very low death number such as AS, MP,GU, VI and so on.
+
+### Q4: Key Information
+
+The COVID Tracking Project also gathers notes from every state. These notes are informative for us to know about what is happing with the COVID-19 status with the state. In other words, we can catch the latest and most important information reading these notes. Simple text-mining like n-grams can give us a rough topic about the pandemic condition. Here, we choose tri-grams.
+
+
+
+```{r,echo=FALSE}
+df = fread("https://api.covidtracking.com/v1/states/info.csv")
+library(tidytext)
+df %>%
+   unnest_ngrams(ngram, notes,n=3) %>%
+   count(ngram,sort=TRUE) %>%
+   top_n(10, n) %>%
+   ggplot(aes(ngram, n)) +geom_col()+ coord_flip()+
+  labs(x='tri-gram',y='mentioned times',title='Top tri-grams mentioned in state notes')+
+  theme(axis.text.x = element_text(angle = 90))+
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank(), axis.line = element_line(colour = "black"))
+```
+
+From the statistics of tri-grams, we can infer that "PCR test" is the most important information across all states. It means that most states is mainly focusing on COVID-19 testing now.
+
+
+## Summary
+
+Based on the preliminary results we analyzed above, we can reach the following conclusions.
+
+
+How is the COVID-19 condition in the United States now?
+
+The COVID-19 condition is not optimistic now, with the confirmed cases still continuously growing. The death numbers are sharply different across different states. In addition, most states are mainly working on doing COVID-19 testing now.
+
+
+
+
+

@@ -6,7 +6,7 @@ navbar:
     - text: "Home"
       href: index.html
     - text: "Lab 12"
-      href: 12-lab.html
+      href: lab-12.html
     - text: "Assignment05"
       href: Assignment05.html
   right:
