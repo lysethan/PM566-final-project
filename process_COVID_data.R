@@ -6,11 +6,11 @@
 
 # load COVID state-level data from NYT
 ### FINISH THE CODE HERE ###
-cv_states_readin <- as.data.frame(data.table::fread("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv") )
+cv_states_readin <- as.data.frame(data.table::fread("./data/us-states.csv") )
 
 # load state population data
 ### FINISH THE CODE HERE ###
-state_pops_readin <- as.data.frame(data.table::fread("https://raw.githubusercontent.com/COVID19Tracking/associated-data/master/us_census_data/us_census_2018_population_estimates_states.csv"))
+state_pops_readin <- as.data.frame(data.table::fread("./data/us_census_2018_population_estimates_states.csv"))
 
 state_pops <- state_pops_readin
 state_pops$abb <- state_pops$state
