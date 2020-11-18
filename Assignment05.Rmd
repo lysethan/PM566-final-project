@@ -36,7 +36,8 @@ source("process_COVID_data.R")
 ### Plot 1
 
 ```{r echo=FALSE}
-df = data.table::fread("https://api.covidtracking.com/v1/us/daily.csv")
+#df = data.table::fread("https://api.covidtracking.com/v1/us/daily.csv")
+df = data.table::fread("data/daily.csv")
 df$date = as.Date(as.character(df$date),"%Y%m%d")
 p <- df %>%
    plot_ly(x=~date, y=~deathIncrease, type="scatter", mode="lines",
@@ -65,7 +66,8 @@ p
 ### Plot 2
 
 ```{r echo=FALSE}
-df2 = data.table::fread("https://api.covidtracking.com/v1/states/current.csv")
+#df2 = data.table::fread("https://api.covidtracking.com/v1/states/current.csv")
+df2 = data.table::fread("data/states_current.csv")
 p2 <- df2 %>%
     select(state,totalTestResults,positive,recovered,death) %>%
     plot_ly(x=~state,y=~positive, type="bar", name="positive") %>%
@@ -78,7 +80,8 @@ p2
 ### Plot 3
 
 ```{r echo=FALSE}
-df_popu = data.table::fread("https://raw.githubusercontent.com/COVID19Tracking/associated-data/master/us_census_data/us_census_2018_population_estimates_states.csv")
+#df_popu = data.table::fread("https://raw.githubusercontent.com/COVID19Tracking/associated-data/master/us_census_data/us_census_2018_population_estimates_states.csv")
+df_popu = data.table::fread("data/us_census_2018_population_estimates_states.csv")
 df3 <- df2 %>%
     select(state, state, positive) %>%
     left_join(df_popu, by="state")

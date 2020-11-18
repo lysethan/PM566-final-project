@@ -28,7 +28,7 @@ opts_chunk$set(
   message = FALSE,
   eval=TRUE,
   echo = TRUE,
-  cache = TRUE,
+  cache = FALSE,
   fig.width = 7,
   fig.align = 'center',
   fig.asp = 0.618,
@@ -105,7 +105,7 @@ df_melted = melt(df, id.vars="date",measure.vars=c("totalTestResultsIncrease","p
 df_melted$date = as.Date(as.character(df_melted$date),"%Y%m%d")
 levels(df_melted$variable) <- c("New COVID-19 Tests", "New Positive Cases", "New Death Cases")
 p <- df_melted %>%
-   ggplot(mapping= aes(x=date, y=case))+geom_line(aes(color=variable))+geom_area(alpha=0.5,aes(fill=variable))+
+   ggplot(mapping= aes(x=date, y=case))+geom_line(aes(color=variable))+
    scale_x_date(date_breaks = "1 month", minor_breaks = "1 week", labels = date_format("%b-%d"))+
    labs(x='Date',y=NULL)+
    theme(axis.text.x = element_text(angle = 0))+
@@ -128,7 +128,7 @@ Different age groups may have different susceptibility towards the virus due to 
 
 
 
-```{r,echo=FALSE}
+```{r}
 df_case  = fread("./data/cases_by_race_ethnicity__all_age_groups.csv")
 df_death = fread("./data/deaths_by_race_ethnicity__all_age_groups.csv")
 df_case$label = paste(df_case$Count, "(", df_case$Percentage, "%)", sep="")
@@ -152,7 +152,7 @@ p
 From the graph, we can find that the differences among races and ethnicities are large. White Non-Hispanic has both the highest infection rate and covid-death rate, whereas Asian Non-Hispanic, American Indian, Native Hawaiian has significantly low infection rate and death rate. 
 
 
-```{r,echo=FALSE}
+```{r}
 df_case = fread("./data/cases_by_age_group.csv")
 df_death = fread("./data/deaths_by_age_group.csv")
 df_case$label = paste(df_case$Count, "(", df_case$Percentage, "%)", sep="")
@@ -176,7 +176,40 @@ ggplotly(p)
 This graph of infection of different age groups tells us the younger people have a higher infection rate than other populations. Nevertheless, the older people tends to be impacted seriously by the virus, thus leading to the higher death rate among the population. We add a smooth line to the differences using `loess` method.
 
 
-## Q4: Population Infection Rate
+
+### Q3: Death Rate
+
+
+
+There are some NAs in this dataset for variable `death`. we can remove it using `dlpy::filter` function. The basic summary of death variable is as follows:
+
+```{r, echo=FALSE}
+#df = fread("https://api.covidtracking.com/v1/states/daily.csv")
+df = fread("data/states_daily.csv")
+basic = t(as.array(summary(df$death)))
+kable(basic)
+```
+
+
+```{r, echo=FALSE}
+p <- df %>%
+  filter(!(death %in% NA)) %>%
+  group_by(state) %>%
+  summarise(total_death=sum(death)) %>%
+  mutate(state = fct_reorder(state, total_death)) %>%
+  ggplot(aes(x=state,y=total_death)) + geom_bar(stat="identity")+
+  labs(x='State',y='Reported Deaths',title='COVID-19 Death cases with respect to each state')+
+  theme(axis.text.x = element_text(angle = 90))+
+  theme(plot.title = element_text(hjust = 0.5))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  theme(panel.background = element_blank(), axis.line = element_line(colour = "black"))
+p
+```
+
+Death number is a good indicator to show the COVID-19 status in a state. We can see from the bar graph that New York State is the most severe state with regard to death cases. Still then, there are some states showing a very low death number such as AS, MP,GU, VI and so on.
+
+
+## Q4: Population Infection Rate:
 
 
 ```{r, echo=FALSE}

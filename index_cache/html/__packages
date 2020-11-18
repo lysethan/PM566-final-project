@@ -12,3 +12,8 @@ forcats
 plotly
 DT
 knitr
+reshape2
+sjPlot
+ggthemes
+scales
+tidytext
